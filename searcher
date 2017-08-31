@@ -1,0 +1,208 @@
+# searcher.py (Final Project)
+#
+# classes for objects that perform state-space search on Eight Puzzles
+
+import random
+from state import *
+
+class Searcher:
+    """ A class for objects that perform random state-space
+        search on an Eight Puzzle.
+        This will also be used as a superclass of classes for
+        other state-space search algorithms.
+    """
+    ### Add your Searcher method definitions here. ###
+# Part 1: __init__
+    def __init__(self,init_state,depth_limit):
+        '''constructs new Searcher object by initializing: attribute states for
+the Searcher's list of untested states, attribute num_tested to keep track of
+how many states the Searcher tests, attribute depth_limit that specifies how
+deep in the state-space search tree the searcher will go. All are speficied by
+parameters except for num_tested.'''
+        self.states = [init_state]
+        self.num_tested = 0
+        self.depth_limit = depth_limit
+        #if depth_limit == -1:
+#            print(str(len(self.states)) + ' untested, ' + str(self.num_tested) + ' tested, ' + 'no depth limit')
+#        else:
+#            print(str(len(self.states)) + ' untested, ' + str(self.num_tested) + ' tested, depth limit = ' + str(self.depth_limit))
+
+    def __repr__(self):
+        """ returns a string representation of the Searcher object
+            referred to by self.
+        """
+        # You should *NOT* change this method.
+        s = str(len(self.states)) + ' untested, '
+        s += str(self.num_tested) + ' tested, '
+        if self.depth_limit == -1:
+            s += 'no depth limit'
+        else:
+            s += 'depth limit = ' + str(self.depth_limit)
+        return s
+
+
+### Add your other class definitions below. ###
+
+# Part 2: should_add
+    def should_add(self,state):
+        '''takes a State Object called state and returns True if the called
+Searcher should add state to its list of untested states, False otherwise.'''
+        moves_to_init = state.num_moves
+        initstate = state
+        while moves_to_init != 0: # finding the initial state if not given
+            initstate = initstate.predecessor
+            moves_to_init -= 1
+                
+        prevstate = state # set prevstate to start at the specified state
+        moves_to_state = 0
+        while initstate != prevstate:
+            prevstate = prevstate.predecessor
+            moves_to_state += 1
+        if self.depth_limit != -1 and moves_to_state > self.depth_limit:
+            return False
+        elif state.creates_cycle() == True:
+            return False
+        else:
+            return True
+
+# Part 3: add_state
+    def add_state(self,new_state):
+        '''takes single State object called new_state and adds it to the
+Searcher's list of untested states'''
+        self.states.append(new_state)
+
+# Part 4: add_states
+    def add_states(self,new_states):
+        '''takes a list State object called new_states and proesses the elements
+of new_states one at a time depending on whether it should be added or not'''
+        for i in range(len(new_states)):
+            if self.should_add(new_states[i]) == True:
+                self.add_state(new_states[i])
+            
+# Part 5: next_state
+    def next_state(self):
+        """ chooses the next state to be tested from the list of 
+            untested states, removing it from the list and returning it
+        """
+        s = random.choice(self.states)
+        self.states.remove(s)
+        return s
+
+# Part 6: find_solution
+    def find_solution(self):   
+        '''performs full random state-space search, stopping when the goal state
+is found or when the Searcher runs out of untested states'''
+        
+        while len(self.states) != 0: #changed from self.states != []
+            s = self.next_state()
+            if s.is_goal() == True:
+                self.num_tested += 1
+                return s
+            else:
+                self.add_states(s.generate_successors())
+                self.num_tested += 1
+        return None
+
+# Part 7: see state.py
+
+# Part 8: use eight_puzzle.py
+
+# Project pt 4::
+# Part 1: BFSearcher, next_state
+class BFSearcher(Searcher):
+    def next_state(self):
+        '''overrides the next_state method inherited from Searcher, follows
+FIFO ordering'''
+        s = self.states[0]
+        self.states.remove(s)
+        return s
+
+# Part 2: DFSearcher, next_state
+class DFSearcher(Searcher):
+    def next_state(self):
+        '''overrides the next_state method inherited from Searcher, follows
+LIFO ordering'''
+        s = self.states[-1]
+        self.states.remove(s)
+        return s
+
+# Part 3: uncommenting create_searcher in eight_puzzle.py
+
+# Part 4: GreedySearcher, priority, add_state, next_state
+class GreedySearcher(Searcher):
+    def priority(self,state): #NEW: edited for partV, part 4
+        '''takes State object called state, computes, and returns the priority of
+that state'''
+        if self.heuristic == 1:
+            num_misplaced_tiles = state.board.num_misplaced()
+            distances_from_goal_board = state.board.total_distance_away()
+            priority = -1*(num_misplaced_tiles + distances_from_goal_board)
+            return priority
+
+        else:
+            num_misplaced_tiles = state.board.num_misplaced()
+            priority = -1 * num_misplaced_tiles
+            return priority
+
+            '''
+            soln = self.find_solution() #greedysearcher doesnt have 'states' attribute
+            print(soln)
+            
+            moves_to_goal = soln.num_moves
+            print(moves_to_goal)
+            priority = -1 * (num_misplaced_tile + moves_to_goal)
+            return priority'''
+    def __init__(self, init_state, heuristic, depth_limit):
+        """ constructor for a GreedySearcher object
+            inputs:
+             * init_state - a State object for the initial state
+             * heuristic - an integer specifying which heuristic
+            function should be used when computing the priority
+            of a state
+             * depth_limit - the depth limit of the searcher
+        """
+        self.heuristic = heuristic
+        self.states = [[self.priority(init_state), init_state]]
+        self.num_tested = 0
+        self.depth_limit = depth_limit
+
+    def add_state(self,state):
+        '''overrides the add_state method inherited from Searcher. Adds a
+sublist that is a [priority,state] pair'''
+        self.states.append([self.priority(state),state])
+
+    def next_state(self):
+        '''overrides the next_state method inherited from Searcher, chooses one
+of the states with the highest priority'''
+        highpri_sublist = max(self.states)
+        self.states.remove(highpri_sublist)
+        return highpri_sublist[1]
+
+# Part 5: AStarSearcher
+class AStarSearcher(GreedySearcher): #choosing to inherit from GreedySearcher
+    # __init__ inherited from GreedySearcher
+    def AStarpriority(self,state):
+        '''takes State object called state, computes, and returns the priority
+of that state'''
+        if self.heuristic == -1: #NEW also edited for partV, Part 4
+            num_misplaced_tiles = state.board.num_misplaced()
+            priority = -1 * (num_misplaced_tiles + state.num_moves) # -1*(num_misplaced_tile + num_moves)
+            return priority
+        else:
+            num_misplaced_tiles = state.board.num_misplaced()
+            distances_from_goal_board = state.board.total_distance_away()
+            priority = -1*(num_misplaced_tiles + distances_from_goal_board + state.num_moves)
+            return priority
+
+    def add_state(self,state):
+        '''overrides the next_state method inherited from GreedySearcher, chooses one
+of the states with the highest priority'''
+        self.states.append([self.AStarpriority(state),state])
+
+# Part 6: uncommenting create_searcher.py
+
+# Project part 5: Part 4: alternate heuristics
+# located in both GreedySearcher and AStarSearcher (because AStarSearcher is a
+# subclass of GreedySearcher
+
+
