@@ -1,0 +1,277 @@
+# board.py (Final Project)
+#
+# A Board class for the Eight Puzzle
+
+from state import *
+class Board:
+    """ A class for objects that represent an Eight Puzzle board.
+    """
+    def __init__(self, digitstr):
+        """ a constructor for a Board object whose configuration
+            is specified by the input digitstr
+            input: digitstr is a permutation of the digits 0-9
+        """
+        # check that digitstr is 9-character string
+        # containing all digits from 0-9
+        assert(len(digitstr) == 9)
+        for x in range(9):
+            assert(str(x) in digitstr)
+
+        self.tiles = [[0] * 3 for x in range(3)]
+        self.blank_r = -1
+        self.blank_c = -1
+
+        # Put your code for the rest of __init__ below.
+        # Do *NOT* remove our code above.
+
+# Part 1: finish __init__
+        self.tiles[0][0] = eval(digitstr[0])
+        self.tiles[0][1] = eval(digitstr[1])
+        self.tiles[0][2] = eval(digitstr[2])
+        self.tiles[1][0] = eval(digitstr[3])
+        self.tiles[1][1] = eval(digitstr[4])
+        self.tiles[1][2] = eval(digitstr[5])
+        self.tiles[2][0] = eval(digitstr[6])
+        self.tiles[2][1] = eval(digitstr[7])
+        self.tiles[2][2] = eval(digitstr[8])
+
+        findblank = [[x,digitstr[x]] for x in range(len(digitstr))]
+        for i in range(len(findblank)):
+            if findblank[i][1] == '0':
+                mypair = findblank[i]
+                if mypair[0] == 0:
+                    self.blank_r = 0
+                    self.blank_c = 0
+                elif mypair[0] == 1:
+                    self.blank_r = 0
+                    self.blank_c = 1
+                elif mypair[0] == 2:
+                    self.blank_r = 0
+                    self.blank_c = 2
+                elif mypair[0] == 3:
+                    self.blank_r = 1
+                    self.blank_c = 0
+                elif mypair[0] == 4:
+                    self.blank_r = 1
+                    self.blank_c = 1
+                elif mypair[0] == 5:
+                    self.blank_r = 1
+                    self.blank_c = 2
+                elif mypair[0] == 6:
+                    self.blank_r = 2
+                    self.blank_c = 0
+                elif mypair[0] == 7:
+                    self.blank_r = 2
+                    self.blank_c = 1
+                else:
+                    self.blank_r = 2
+                    self.blank_c = 2
+    
+        
+ 
+    ### Add your other method definitions below. ###
+# Part 2: __repr__
+    def __repr__(self):
+        '''returns a string representation of the board object'''
+        s = ''
+        for row in range(len(self.tiles)):
+            #add row of nums
+            for col in range(len(self.tiles[0])):
+                if self.tiles[row][col] == 0:
+                    s += '_' + ' '
+                else:
+                    s += str(self.tiles[row][col]) + ' '
+            s += '\n'
+        return s
+
+# Part 3: move_blank
+    def move_blank(self,direction):
+        '''takes an input string direction, which specifies a direction for the
+blank to move and attempts to modify the contents of the board accordingly.
+Returns true or false to indicate if the move was possible'''
+        if direction not in 'updownleftright':
+            print('unknown direction: ' + direction)
+            return False
+        else:
+            if direction == 'up':
+                if self.blank_r == 0:
+                    return False
+                else:
+                    nrow = self.blank_r - 1
+                    ncol = self.blank_c
+                    self.tiles[self.blank_r][self.blank_c] = self.tiles[nrow][ncol]
+                    self.tiles[nrow][ncol] = 0
+                    self.blank_r = nrow
+                    self.blank_c = ncol
+                    return True
+            elif direction == 'left':
+                if  self.blank_c == 0:
+                    return False
+                else:
+                    nrow = self.blank_r
+                    ncol = self.blank_c - 1
+                    self.tiles[self.blank_r][self.blank_c] = self.tiles[nrow][ncol]
+                    self.tiles[nrow][ncol] = 0
+                    self.blank_r = nrow
+                    self.blank_c = ncol
+                    return True
+            elif direction == 'down':
+                if self.blank_r == 2:
+                    return False
+                else:
+                    nrow = self.blank_r + 1
+                    ncol = self.blank_c
+                    self.tiles[self.blank_r][self.blank_c] = self.tiles[nrow][ncol]
+                    self.tiles[nrow][ncol] = 0
+                    self.blank_r = nrow
+                    self.blank_c = ncol
+                    return True
+            elif direction == 'right':
+                if self.blank_c == 2:
+                    return False
+                else:
+                    nrow = self.blank_r
+                    ncol = self.blank_c + 1
+                    self.tiles[self.blank_r][self.blank_c] = self.tiles[nrow][ncol]
+                    self.tiles[nrow][ncol] = 0
+                    self.blank_r = nrow
+                    self.blank_c = ncol
+                    return True
+                
+# Part 4: digit_string
+    def digit_string(self):
+        '''creates and returns a string of digits that corresponds to the
+current contents of the board object's tiles attribute.'''
+        mystr = str(self).replace('_','0')
+        mystr = mystr.replace('\n','')
+        mystr = mystr.replace(' ','')
+        return mystr
+
+# Part 5: copy
+    def copy(self):
+        '''returns newly-constructed board that is a deep copy of the called
+object.'''
+        mystr = self.digit_string()
+        new = Board(mystr)
+        return new
+
+# Part 6: num_misplaced
+    def num_misplaced(self):
+        '''counts and returns the number of tiles in the called board object that
+are not where they should be in the goal state.'''
+        count = 0
+        if self.tiles[0][1] != 1:
+            count += 1
+        if self.tiles[0][2] != 2:
+            count +=1
+        if self.tiles[1][0] != 3:
+            count += 1
+        if self.tiles[1][1] != 4:
+            count += 1
+        if self.tiles[1][2] != 5:
+            count += 1
+        if self.tiles[2][0] != 6:
+            count += 1
+        if self.tiles[2][1] != 7:
+            count += 1
+        if self.tiles[2][2] != 8:
+            count += 1
+        return count
+
+# Part 7: __eq__
+    def __eq__(self,other):
+        '''overrides the == operator, creating a version of the operator that
+works for Board objects. Returns True if self and other have the same tile values,
+False otherwise.'''
+        return self.tiles == other.tiles
+
+# Part 4 of project part 5: adding methods for new heuristic
+    def total_distance_away(self):
+        goal = Board('012345678')
+        tot_dist = 0
+        for row in range(len(self.tiles)):
+            for col in range(len(self.tiles[0])):
+                if self.tiles[row][col] == 0: #don't include the blank
+                    tot_dist = tot_dist
+                elif self.tiles[row][col] != goal.tiles[row][col]:#if the tile is misplaced
+                    if self.tiles[row][col] == self.tiles[0][0]: #and in upper left
+                        if goal.tiles[row][col+1] == self.tiles[row][col] or goal.tiles[row+1][col] == self.tiles[row][col]: #goal state: adjacentw
+                            tot_dist += 1
+                        elif goal.tiles[row+1][col+1] == self.tiles[row][col] or goal.tiles[row+2][col] == self.tiles[row][col] or goal.tiles[row][col+2] == self.tiles[row][col]: #goal state: 2 moves away
+                            tot_dist += 2
+                        elif goal.tiles[row+2][col+1] == self.tiles[row][col] or goal.tiles[row+1][col+2] == self.tiles[row][col]: # goal state: 3 moves away
+                            tot_dist += 3
+                        else: # goal state: 4 moves away
+                            tot_dist += 4
+
+                    if self.tiles[row][col] == self.tiles[0][1]: #and in upper middle
+                        if goal.tiles[row][col+1] == self.tiles[row][col] or goal.tiles[row+1][col] == self.tiles[row][col] or goal.tiles[row][col-1] == self.tiles[row][col]: #goal state: adjacent 
+                            tot_dist += 1
+                        elif goal.tiles[row+1][col+1] == self.tiles[row][col] or goal.tiles[row+1][col-1] == self.tiles[row][col] or goal.tiles[row+2][col] == self.tiles[row][col]: #goal state: 2 moves away
+                            tot_dist += 2
+                        else: # goal state: 3 moves away
+                            tot_dist += 3
+
+                    if self.tiles[row][col] == self.tiles[0][2]: #and in upper right
+                        if goal.tiles[row][col-1] == self.tiles[row][col] or goal.tiles[row+1][col] == self.tiles[row][col]: #goal state: adjacentw
+                            tot_dist += 1
+                        elif goal.tiles[row+1][col-1] == self.tiles[row][col] or goal.tiles[row+2][col] == self.tiles[row][col] or goal.tiles[row][col-2] == self.tiles[row][col]: #goal state: 2 moves away
+                            tot_dist += 2
+                        elif goal.tiles[row+2][col-1] == self.tiles[row][col] or goal.tiles[row+1][col-2] == self.tiles[row][col]: # goal state: 3 moves away
+                            tot_dist += 3
+                        else: # goal state: 4 moves away
+                            tot_dist += 4
+
+                    if self.tiles[row][col] == self.tiles[1][0]: #and in middle left
+                        if goal.tiles[row][col+1] == self.tiles[row][col] or goal.tiles[row+1][col] == self.tiles[row][col] or goal.tiles[row-1][col] == self.tiles[row][col]: #goal state: adjacentw
+                            tot_dist += 1
+                        elif goal.tiles[row+1][col+1] == self.tiles[row][col] or goal.tiles[row-1][col+1] == self.tiles[row][col] or goal.tiles[row][col+2] == self.tiles[row][col]: #goal state: 2 moves away
+                            tot_dist += 2
+                        else: # goal state: 3 moves away
+                            tot_dist += 3
+
+                    if self.tiles[row][col] == self.tiles[1][1]: #and in middle 
+                        if goal.tiles[row][col+1] == self.tiles[row][col] or goal.tiles[row+1][col] == self.tiles[row][col] or goal.tiles[row-1][col] == self.tiles[row][col] or goal.tiles[row][col-1] == self.tiles[row][col]: #goal state: adjacentw
+                            tot_dist += 1
+                        else: # goal state: 2 moves away
+                            tot_dist += 2
+
+                    if self.tiles[row][col] == self.tiles[1][2]: #and in middle right
+                        if goal.tiles[row][col-1] == self.tiles[row][col] or goal.tiles[row+1][col] == self.tiles[row][col] or goal.tiles[row-1][col] == self.tiles[row][col]: #goal state: adjacentw
+                            tot_dist += 1
+                        elif goal.tiles[row-1][col-1] == self.tiles[row][col] or goal.tiles[row+1][col-1] == self.tiles[row][col] or goal.tiles[row][col-2] == self.tiles[row][col]: #goal state: 2 moves away
+                            tot_dist += 2
+                        else: # goal state: 3 moves away
+                            tot_dist += 3
+
+                    if self.tiles[row][col] == self.tiles[2][0]: #and in lower left
+                        if goal.tiles[row][col+1] == self.tiles[row][col] or goal.tiles[row-1][col] == self.tiles[row][col]: #goal state: adjacentw
+                            tot_dist += 1
+                        elif goal.tiles[row-1][col+1] == self.tiles[row][col] or goal.tiles[row-2][col] == self.tiles[row][col] or goal.tiles[row][col+2] == self.tiles[row][col]: #goal state: 2 moves away
+                            tot_dist += 2
+                        elif goal.tiles[row-2][col+1] == self.tiles[row][col] or goal.tiles[row-1][col+2] == self.tiles[row][col]: # goal state: 3 moves away
+                            tot_dist += 3
+                        else: # goal state: 4 moves away
+                            tot_dist += 4
+
+                    if self.tiles[row][col] == self.tiles[2][1]: #and in lower middle
+                        if goal.tiles[row][col-1] == self.tiles[row][col] or goal.tiles[row][col+1] == self.tiles[row][col] or goal.tiles[row][col-1]: #goal state: adjacent 
+                            tot_dist += 1
+                        elif goal.tiles[row-1][col+1] == self.tiles[row][col] or goal.tiles[row-1][col-1] == self.tiles[row][col] or goal.tiles[row-2][col] == self.tiles[row][col]: #goal state: 2 moves away
+                            tot_dist += 2
+                        else: # goal state: 3 moves away
+                            tot_dist += 3
+
+                    if self.tiles[row][col] == self.tiles[2][2]: #and in lower right
+                        if goal.tiles[row][col-1] == self.tiles[row][col] or goal.tiles[row-1][col] == self.tiles[row][col]: #goal state: adjacentw
+                            tot_dist += 1
+                        elif goal.tiles[row-1][col-1] == self.tiles[row][col] or goal.tiles[row-2][col] == self.tiles[row][col] or goal.tiles[row][col-2] == self.tiles[row][col]: #goal state: 2 moves away
+                            tot_dist += 2
+                        elif goal.tiles[row-2][col-1] == self.tiles[row][col] or goal.tiles[row-1][col-2] == self.tiles[row][col]: # goal state: 3 moves away
+                            tot_dist += 3
+                        else: # goal state: 4 moves away
+                            tot_dist += 4
+                    
+        return tot_dist
+    
+ 
